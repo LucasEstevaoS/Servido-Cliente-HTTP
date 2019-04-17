@@ -42,21 +42,24 @@ class Servidor(object):
     #Metodos para navegar nos diretorios
     def navegadorDir(self, msg):
 
-        #download
-        if msg[:7] == "http://":
-            print(msg[7:])
+        if msg[-1] == "/":
+            msg = msg[:len(msg)-1]
+            print("hahahah")
 
-        #listar
-        elif msg[:3] == "ls ":
-            print("ls")
-            dirs = os.listdir(msg[3:])
-            print (dirs)
-            #arquivos = self.verificarTipos(dirs)
-            self.enviar(dirs)
-            #gerar o codigo html
+        #verifica se é diretorio raiz
+        if len(msg) == 0:
+            print ("diretorio raiz")
 
-        else :
-            print(" Comando Invalido\n ")
+        #verifica se é arquivo
+        elif "." in msg:
+            print("arquivo")
+
+        #se nao é arquivo nem diretorio raiz, é uma cadeia dde diretorio
+        else:
+            print("diretorio nao raiz")
+
+        #else :
+        #    print(" Comando Invalido 404\n ")
 
     def enviar(self, msg): # None: requisicao GET
         dados_byte = pickle.dumps(msg)
@@ -65,11 +68,13 @@ class Servidor(object):
     #recebe a mensagem em byte e converte pra caracter
     def receber(self):
         dados_byte = self.conexao.recv(self.tamBuffer)
-        msg = pickle.loads(dados_byte)
-        return msg
+        #msg = pickle.loads(dados_byte)
+        #print("mensagem print:",msg)
+        #print("mensagem print:",dados_byte)
+        #return msg
 
-    #def cabecalhoServidor(mensagem):
-    #    if mensagem = 200
+        msg = str(dados_byte).split(" ")
+        return msg[1]
 
 def main(argv):
     parse = argparse.ArgumentParser()
