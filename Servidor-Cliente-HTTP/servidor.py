@@ -32,8 +32,11 @@ class Servidor(object):
             self.conexao = con
             print ('Conetado por', cliente)
             while True:
-                msg = self.receber()
-                self.navegadorDir(msg)
+                dados_byte = self.conexao.recv(self.tamBuffer)
+                msg = str(dados_byte).split(" ")
+                print(msg[1])
+                self.navegadorDir(msg[1])
+
                 if not msg: break
 
             print ('Finalizando conexao do cliente', cliente)
@@ -41,40 +44,35 @@ class Servidor(object):
 
     #Metodos para navegar nos diretorios
     def navegadorDir(self, msg):
+        #if type(msg) == 'NoneType':
+        #    print ("error")
 
-        if msg[-1] == "/":
-            msg = msg[:len(msg)-1]
-            print("hahahah")
+        #if msg[-1] == "/":
+        #    msg = msg[:len(msg)-1]
+        #    print("hahahah")
 
         #verifica se é diretorio raiz
-        if len(msg) == 0:
-            print ("diretorio raiz")
+        #if len(msg) == 0:
+        #    print ("diretorio raiz")
 
         #verifica se é arquivo
-        elif "." in msg:
-            print("arquivo")
+        if "." in msg:
+
+            #msg.split(".")[1]
+            arq = open(msg[1:], "rb")
+            arquivo = arq.read()
+            saida = "HTTP/1.1 200 OK\r\nContent-Type: image/jpg \r\nContent-Length: "+str(len(arquivo))+"\r\n\r\n"
+            saida2 = saida.encode()+arquivo
+            self.conexao.send(saida2)
+
+
+            #gerar o codigo html
 
         #se nao é arquivo nem diretorio raiz, é uma cadeia dde diretorio
         else:
             print("diretorio nao raiz")
 
-        #else :
-        #    print(" Comando Invalido 404\n ")
 
-    def enviar(self, msg): # None: requisicao GET
-        dados_byte = pickle.dumps(msg)
-        self.conexao.send(dados_byte)
-
-    #recebe a mensagem em byte e converte pra caracter
-    def receber(self):
-        dados_byte = self.conexao.recv(self.tamBuffer)
-        #msg = pickle.loads(dados_byte)
-        #print("mensagem print:",msg)
-        #print("mensagem print:",dados_byte)
-        #return msg
-
-        msg = str(dados_byte).split(" ")
-        return msg[1]
 
 def main(argv):
     parse = argparse.ArgumentParser()
@@ -83,7 +81,7 @@ def main(argv):
 
     if args.PORT:
         PORT = int(args.PORT)
-        servidor = Servidor(PORT, 1024)
+        servidor = Servidor(PORT, 4096)
         servidor.rodar()
 
 
