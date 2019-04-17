@@ -12,7 +12,7 @@ from termcolor import colored
 # Endereco IP do Servidor
 HOST = 'localhost'
 # Porta que o Servidor esta
-PORT = 5011
+PORT = 5006
 
 
 class Cliente(object):
@@ -22,41 +22,18 @@ class Cliente(object):
         self.tamBuffer = tamBuffer
 
     def enviar(self, msg):
-        dados = {'msg': msg,
-                 'lixo': ''}
-        dados_bytes = pickle.dumps(dados)
-
-        # Adicionar lixo no final
-        if len(dados_bytes) < self.tamBuffer:
-            dados['lixo'] = '$'*(self.tamBuffer-len(dados_bytes))
-            dados_bytes = pickle.dumps(dados)
-        elif len(dados_bytes) > self.tamBuffer:
-            # zuou a parada
-            return
+        dados_bytes = pickle.dumps(msg)
         self.tcp.send(dados_bytes)
 
     def receber(self):
         dados_byte = self.tcp.recv(self.tamBuffer)
-        dados = pickle.loads(dados_byte)
+        msg = pickle.loads(dados_byte)
+        self.imprimirMsg(msg)
+        return msg
 
-        if dados['tipoArq'] is None: # Se a requisição for GET
-            # receber arquivo
-            # salvar arquivo
-            print(colored("Download concluído!", 'green'))
-            return
-
-        self.imprimirMsg(dados['msg'], dados['tipoArq'])
-        return dados['msg'], dados['tipoArq']
-
-    #o tipo dele ta dando bosta
-    def imprimirMsg(self, msg, tipoArq):
-        for index, valor in enumerate(msg):
-            if tipoArq[index] == 'arq':
-                print(colored(valor, 'magenta'))
-            if tipoArq[index] == 'dir':
-                print(colored(valor, 'yellow'))
-
-            print (tipoArq[index])
+    def imprimirMsg(self, msg):
+        for m in msg:
+            print(m)
 
     def conectar(self):
         self.tcp.connect(self.dest)
@@ -71,7 +48,6 @@ def main(argv):
     while msg != '\x18':
         cliente.enviar(msg)
         msg = cliente.receber()
-
         msg = input()
 
     tcp.close()

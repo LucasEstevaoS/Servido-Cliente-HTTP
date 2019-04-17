@@ -11,9 +11,6 @@ import os
 HOST = 'localhost'
 # Porta que o Servidor esta
 PORT = 80
-
-
-
 class Servidor(object):
     def __init__(self, porta, tamBuffer):
         self.origem = ('', porta)
@@ -46,64 +43,33 @@ class Servidor(object):
     def navegadorDir(self, msg):
 
         #download
-        if msg[:4] == "get ":
-            print("get")
-            self.dados.tipoArq = None
-
-
-            #self.dados.msg = open(msg[4:])
-            #print (cliente, msg)
-            #dirs = os.listdir(msg)
-            self.enviar(msg[4:], None)
+        if msg[:7] == "http://":
+            print(msg[7:])
 
         #listar
         elif msg[:3] == "ls ":
             print("ls")
             dirs = os.listdir(msg[3:])
-            arquivos = self.verificarTipos(dirs)
-            self.enviar(dirs, arquivos)
+            print (dirs)
+            #arquivos = self.verificarTipos(dirs)
+            self.enviar(dirs)
+            #gerar o codigo html
 
         else :
             print(" Comando Invalido\n ")
 
-    #verifica se é um arquivo ou um diretorio
-    def verificarTipos(self, dirs):
-        arquivos = []
-        for d in dirs:
-            if os.path.isdir():
-                arquivos.append('dir')
-            if os.path.isfile():
-                arquivos.append('arq')
-
-
-        return arquivos
-
-    def enviar(self, msg, arquivos=None): # None: requisicao GET
-        dados = {'msg': msg,
-                 'tipoArq':arquivos,
-                 'lixo': '',
-                 'baixando': True}
-        dados_byte = pickle.dumps(dados)
-
-        # Adicionar lixo no final
-        if len(dados_byte) < self.tamBuffer:
-            dados['lixo'] = '$'*(self.tamBuffer-len(dados_byte))
-        elif len(dados_byte) > self.tamBuffer:
-            # zuou a parada
-            return
-
-        dados_byte = pickle.dumps(dados)
-
-        print(dados_byte)
+    def enviar(self, msg): # None: requisicao GET
+        dados_byte = pickle.dumps(msg)
         self.conexao.send(dados_byte)
 
     #recebe a mensagem em byte e converte pra caracter
     def receber(self):
         dados_byte = self.conexao.recv(self.tamBuffer)
-        dados = pickle.loads(dados_byte)
-        return dados['msg']
+        msg = pickle.loads(dados_byte)
+        return msg
 
-
+    #def cabecalhoServidor(mensagem):
+    #    if mensagem = 200
 
 def main(argv):
     parse = argparse.ArgumentParser()
@@ -114,7 +80,6 @@ def main(argv):
         PORT = int(args.PORT)
         servidor = Servidor(PORT, 1024)
         servidor.rodar()
-
 
 
 if __name__ == "__main__":
