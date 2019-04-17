@@ -36,7 +36,7 @@ class Servidor(object):
         try:
             self.tcp.bind(self.origem)
         except PermissionError:
-            print("Erro de permissao de porta ver o numero do erro")
+            print("Erro de permissao de porta")
             exit(0)
 
         self.tcp.listen(1)
@@ -49,16 +49,23 @@ class Servidor(object):
 
     #Metodos para navegar nos diretorios
     def navegadorDir(self, msg):
-        #if type(msg) == 'NoneType':
-        #    print ("error")
+        if type(msg) == 'NoneType':
+            print ("error")
 
-        #if msg[-1] == "/":
-        #    msg = msg[:len(msg)-1]
-        #    print("hahahah")
+        #tira a / do final
+        if msg[-1] == "/":
+            msg = msg[:len(msg)-1]
+
 
         #verifica se é diretorio raiz
-        #if len(msg) == 0:
-        #    print ("diretorio raiz")
+        if len(msg) == 0:
+            print ("diretorio raiz")
+            dirs = os.listdir("/")
+            saida = "HTTP/1.1 200 OK\r\nContent-Type:text/txt \r\nContent-Length: "+str(len(dirs))+"\r\n\r\n"
+            saida2 = saida.encode()+dirs
+            self.conexao.send(saida2)
+            self.conexao.close()
+
 
         #verifica se é arquivo
         if "." in msg:
