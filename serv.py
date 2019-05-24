@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import socket
 import pickle
 import argparse
@@ -8,9 +5,7 @@ import sys
 import os
 
 # Endereco IP do Servidor
-HOST = 'http://www.sandrinha.com.br'
-# Porta que o Servidor esta
-PORT = 80
+HOST = 'localhost'
 class Servidor(object):
     def __init__(self, porta, tamBuffer):
         self.origem = ('', porta)
@@ -52,7 +47,8 @@ class Servidor(object):
 
             #descobrir que é http
             if(msg[4:8] =="http"):
-                print ("http")
+                self.tratamentoCabecalhoCliente(msg)
+
 
             #descobrir que é file
             if(msg[4:9] =="file "):
@@ -75,6 +71,31 @@ class Servidor(object):
             self.enviar(dirs)
         else :
             print(" Comando Invalido\n ")
+
+    def tratamentoCabecalhoCliente(self, msg):
+
+        url = msg[15:]
+        self.conexao.close()
+        self.tcp.close()
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_address = (url, 80)
+        client_socket.connect(server_address)
+        request_header = 'GET / HTTP/1.1\r\nHost: {}\r\nConnection: keep-alive\r\n Content-Length: 0\r\n\r\n'.format(url)
+        client_socket.send(request_header.encode())
+
+        caminho = os.getcwd()
+        caminho = caminho + "/downloads/"+url+".html"
+        arq = open(caminho, 'w')
+
+        while True:
+            recv = client_socket.recv(1024)
+            conteudo = recv.decode()
+            if "</html>" in conteudo:
+                break
+            arq.write(str(conteudo))
+        arq.close()
+        client_socket.close()
+
 
     #transforma string em byte e envia
     def enviar(self, msg):
